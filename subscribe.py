@@ -9,9 +9,8 @@ class ValidSubscrHandler(Presence):
     """
 
     def clean_to(self, value):
-        if self.host:
-            if not self.host.validator(value.user):
-                raise WrongElement
+        if not self.host.validator(value.user):
+            raise WrongElement
         return value
 
     def availableHandler(self):
@@ -19,7 +18,7 @@ class ValidSubscrHandler(Presence):
 
     def probeHandler(self):
         reply = self.get_reply()
-        reply.to = reply.to.bare()
+        reply.to = self.from_.bare()
         reply.type_ = 'presence'
         return reply
 
@@ -42,9 +41,8 @@ class InvalidSubscrHandler(Presence):
     """
 
     def clean_to(self, value):
-        if self.host:
-            if self.host.validator(value.user):
-                raise WrongElement
+        if self.host.validator(value.user):
+            raise WrongElement
         return value
 
     def availableHandler(self):
