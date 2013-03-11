@@ -8,6 +8,7 @@ from twilix.patterns.component import TwilixComponent
 from twilix.dispatcher import Dispatcher
 from twilix.vcard import VCard, VCardQuery
 
+from subscribe import SubscrHandler
 from translation_api import MultitranAPI
 
 class jtranslateComponent(TwilixComponent):
@@ -33,6 +34,7 @@ class jtranslateComponent(TwilixComponent):
         Method initializing all needed services and handlers.
         """
         self.startTime = time.time()
+        self.dispatcher.registerHandler((SubscrHandler, self))
         self.disco = Disco(self.dispatcher)
         self.version = ClientVersion(self.dispatcher,
                                     'jabber translate service',
@@ -44,7 +46,9 @@ class jtranslateComponent(TwilixComponent):
 Jabber translate service')
         self.vcard = VCard(self.dispatcher, myvcard=self.myvcard)
         self.vcard.init(self.disco)
-        items = [DiscoItem(jid='%s@%s' % (code, lang),
+        self.items = [u'%s@%s' % (code, self.myjid)
+                    for code in MultitranAPI.get_languages()]
+        items = [DiscoItem(jid=u'%s@%s' % (code, self.myjid),
                            iname='Translate to %s'%lang)
                     for code, lang in MultitranAPI.get_languages().items()]
         self.disco.root_items.addItems(items)
