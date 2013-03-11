@@ -9,6 +9,7 @@ from twilix.dispatcher import Dispatcher
 from twilix.vcard import VCard, VCardQuery
 
 from subscribe import Subscription
+from messages import MessageTranslation
 from translation_api import MultitranAPI
 
 class jtranslateComponent(TwilixComponent):
@@ -57,5 +58,7 @@ Jabber translate service')
 
         self.subscription = Subscription(self.dispatcher, validate)
         self.subscription.init()
+        self.mtrans = MessageTranslation(self.dispatcher)
+        self.mtrans.init()
         self.disco.init()
         print 'Connected!'

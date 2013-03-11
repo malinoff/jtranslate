@@ -25,8 +25,12 @@ class MultitranAPI(object):
     def get_languages(cls):
         return dict(map(lambda x: (x[0], x[1][0]), cls.langs.items()))
 
+    @classmethod
     @inlineCallbacks
-    def translate(self, word, lang):
+    def translate(cls, word, lang):
+        if isinstance(lang, basestring):
+            lang = cls.langs[str(lang)][1]
+        word = word.encode('cp1251')
         page = 'http://www.multitran.ru/c/m.exe?CL=1&s=%s&l1=%d'%(word, lang)
         page = yield getPage(page)
         translation = ''
