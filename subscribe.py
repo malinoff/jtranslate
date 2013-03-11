@@ -6,8 +6,13 @@ class SubscrHandler(Presence):
     Extends Presence class.
     Defines handlers for subscribe queries.
     """
+
+    def availableHandler(self):
+        if self.host.validator(self.to.user):
+            return self.get_reply()
+
     def probeHandler(self):
-        if unicode(self.to.bare()) in self.host.items:
+        if self.host.validator(self.to.user):
             reply = self.get_reply()
             reply.to = reply.to.bare()
             reply.type_ = 'presence'
@@ -16,7 +21,7 @@ class SubscrHandler(Presence):
             return EmptyStanza()
 
     def subscribeHandler(self):
-        if unicode(self.to.bare()) in self.host.items:
+        if self.host.validator(self.to.user):
             reply = self.get_reply()
             reply.type_ = 'subscribed'
             return reply, self.probeHandler()
@@ -27,3 +32,14 @@ class SubscrHandler(Presence):
     def unsubscribedHandler(self):
         reply = Presence(to=self.from_, from_=self.to, type_='unsubscribed')
         return reply
+
+class Subscription(object):
+    def __init__(self, dispatcher, validator, desc=None, prompt=None):
+        self.dispatcher = dispatcher
+        self.desc = desc
+        self.prompt = prompt
+        self.jid = None
+        self.validator = validator
+
+    def init(self, disco=None):
+        self.dispatcher.registerHandler((SubscrHandler, self))
