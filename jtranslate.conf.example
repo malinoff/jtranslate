@@ -1,0 +1,5 @@
+[component]
+jid = ;jid
+host = ;hostname
+port = ;port number
+password = ;password
