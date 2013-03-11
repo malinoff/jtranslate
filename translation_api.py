@@ -30,7 +30,8 @@ class MultitranAPI(object):
     def translate(cls, word, lang):
         if isinstance(lang, basestring):
             lang = cls.langs[str(lang)][1]
-        word = word.encode('cp1251')
+        word = word.encode('cp1251', 'xmlcharrefreplace')
+        print word
         page = 'http://www.multitran.ru/c/m.exe?CL=1&s=%s&l1=%d'%(word, lang)
         page = yield getPage(page)
         translation = ''
