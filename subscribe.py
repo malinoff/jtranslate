@@ -34,12 +34,10 @@ class SubscrHandler(Presence):
         return reply
 
 class Subscription(object):
-    def __init__(self, dispatcher, validator, desc=None, prompt=None):
+    def __init__(self, dispatcher, validator):
         self.dispatcher = dispatcher
-        self.desc = desc
-        self.prompt = prompt
         self.jid = None
         self.validator = validator
 
-    def init(self, disco=None):
+    def init(self):
         self.dispatcher.registerHandler((SubscrHandler, self))
