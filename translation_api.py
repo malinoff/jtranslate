@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import urllib
 from lxml import etree
 
@@ -27,20 +28,59 @@ class MultitranAPI(object):
 
     @classmethod
     @inlineCallbacks
-    def translate(cls, word, lang):
-        if isinstance(lang, basestring):
-            lang = cls.langs[str(lang)][1]
-        word = word.encode('cp1251', 'xmlcharrefreplace')
-        print word
-        page = 'http://www.multitran.ru/c/m.exe?CL=1&s=%s&l1=%d'%(word, lang)
+    def _get_transcription(cls, word):
+        # get page with transcription
+        word = word.encode('utf-8')#, 'xmlcharrefreplace')
+        transl = u'перевод'.encode('utf-8')#,'xmlcharrefreplace')
+        page = 'http://slovari.yandex.ru/%s/%s/#lingvo/'%(word, transl)
         page = yield getPage(page)
-        translation = ''
+        # find transcription
         html = etree.HTML(page)
+        title = html.xpath('//h1[@class="b-translation__title"]/child::text()')
+        title = title[0].strip('\r\n').strip('[').strip()
+        # check yandex auto replace unkown words
+        if title.lower() == word.lower():
+            transcription = html.xpath('//span[@class="b-translation__tr"]')
+            if transcription:
+                returnValue(transcription[0].text)
+
+    @classmethod
+    @inlineCallbacks
+    def _get_translation(cls, word, lang):
+        translation = ''
+        # get page with translation
+        wrd = word.encode('cp1251', 'xmlcharrefreplace')
+        page = 'http://www.multitran.ru/c/m.exe?CL=1&%s&l1=%d'%(
+                                        urllib.urlencode({'s': wrd}), lang)
+        page = yield getPage(page)
+        html = etree.HTML(page)
+        # find table with translation
         trs = html.xpath('//form[@id="translation"]/../table[2]/tr')
-        for tr in trs:
+        x = trs[0].xpath('td')[0].xpath('descendant::text()')
+        # uknown word
+        if len(x) == 1:
+            returnValue('Sorry, can not translate "%s"'%word)
+        translation += '%s' % x[0].rstrip('\r\n')
+        translation += '%s' % x[1].rstrip('\r\n')
+
+        transcription = yield cls._get_transcription(word)
+        if transcription:
+            translation += ' [%s] ' % transcription
+
+        for elem in x[2:]:
+            translation += '%s' % elem.rstrip('\r\n')
+        translation += '\n'
+        for tr in trs[1:]:
             tds = tr.xpath('td')
             for td in tds:
                 for elem in td.xpath('descendant::text()'):
                     translation += '%s' % elem.rstrip('\r\n')
             translation += '\n'
         returnValue(translation)
+
+    @classmethod
+    def translate(cls, word, lang):
+        if isinstance(lang, basestring):
+            lang = cls.langs[str(lang)][1]
+        translation = cls._get_translation(word, lang)
+        return translation
