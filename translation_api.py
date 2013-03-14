@@ -30,14 +30,15 @@ class MultitranAPI(object):
     @inlineCallbacks
     def _get_transcription(cls, word):
         # get page with transcription
-        word = word.encode('utf-8')#, 'xmlcharrefreplace')
-        transl = u'перевод'.encode('utf-8')#,'xmlcharrefreplace')
-        page = 'http://slovari.yandex.ru/%s/%s/#lingvo/'%(word, transl)
+        word = word.encode('utf-8')
+        transl = u'перевод'.encode('utf-8')
+        wrd = urllib.quote_plus(word, '')
+        page = 'http://slovari.yandex.ru/%s/%s/#lingvo/'%(wrd, transl)
         page = yield getPage(page)
         # find transcription
         html = etree.HTML(page)
         title = html.xpath('//h1[@class="b-translation__title"]/child::text()')
-        title = title[0].strip('\r\n').strip('[').strip()
+        title = title[0].strip('\r\n').rstrip('[').strip()
         # check yandex auto replace unkown words
         if title.lower() == word.lower():
             transcription = html.xpath('//span[@class="b-translation__tr"]')
@@ -50,9 +51,12 @@ class MultitranAPI(object):
         translation = ''
         # get page with translation
         wrd = word.encode('cp1251', 'xmlcharrefreplace')
-        page = 'http://www.multitran.ru/c/m.exe?CL=1&%s&l1=%d'%(
-                                        urllib.urlencode({'s': wrd}), lang)
-        page = yield getPage(page)
+        params = urllib.urlencode({'s':wrd, 'CL':1, 'l1':lang})
+        page = 'http://www.multitran.ru/c/m.eaxe?%s'%params
+        try:
+            page = yield getPage(page)
+        except:
+            returnValue('Service error. Please, try later.')
         html = etree.HTML(page)
         # find table with translation
         trs = html.xpath('//form[@id="translation"]/../table[2]/tr')
@@ -63,9 +67,12 @@ class MultitranAPI(object):
         translation += '%s' % x[0].rstrip('\r\n')
         translation += '%s' % x[1].rstrip('\r\n')
 
-        transcription = yield cls._get_transcription(word)
-        if transcription:
-            translation += ' [%s] ' % transcription
+        try:
+            transcription = yield cls._get_transcription(word)
+            if transcription:
+                translation += ' [%s] ' % transcription
+        except:
+            pass
 
         for elem in x[2:]:
             translation += '%s' % elem.rstrip('\r\n')
