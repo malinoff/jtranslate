@@ -33,8 +33,8 @@ class MultitranAPI(object):
         # get page with transcription
         word = word.encode('utf-8')
         transl = u'перевод'.encode('utf-8')
-        wrd = urllib.quote_plus(word, '')
-        page = 'http://slovari.yandex.ru/%s/%s/#lingvo/'%(wrd, transl)
+        wrd = urllib.quote_plus(word)
+        page = 'http://slovari.yandex.ru/%s/%s/#lingvo/' % (wrd, transl)
         page = yield getPage(page)
         # find transcription
         html = etree.HTML(page)
