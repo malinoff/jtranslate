@@ -4,8 +4,12 @@ from lxml import etree
 
 from twisted.web.client import getPage
 from twisted.web.error import Error
-from twisted.internet.error import DNSLookupError, TimeoutError
-from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
+from twisted.internet.error import (DNSLookupError, TimeoutError,
+                                    ConnectionRefusedError, ConnectionDone,
+                                    ConnectError, ConnectionLost,
+                                    TCPTimedOutError)
+from twisted.internet.defer import (Deferred, inlineCallbacks, returnValue,
+                                    TimeoutError as UserTimeoutError)
 
 class MultitranAPI(object):
 
@@ -57,7 +61,9 @@ class MultitranAPI(object):
         page = 'http://www.multitran.ru/c/m.exe?%s' % params
         try:
             page = yield getPage(page)
-        except (Error, DNSLookupError, TimeoutError) as e:
+        except (Error, DNSLookupError, TimeoutError, ConnectionRefusedError,
+                ConnectionLost, ConnectError, ConnectionDone,
+                UserTimeoutError) as e:
             returnValue('Service error. Please, try later.')
         html = etree.HTML(page)
         # find table with translation
@@ -71,7 +77,9 @@ class MultitranAPI(object):
 
         try:
             transcription = yield cls._get_transcription(word)
-        except (Error, DNSLookupError, TimeoutError) as e:
+        except (Error, DNSLookupError, TimeoutError, ConnectionRefusedError,
+                ConnectionLost, ConnectError, ConnectionDone,
+                UserTimeoutError) as e:
             pass
         else:
             if transcription:
