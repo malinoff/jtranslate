@@ -3,6 +3,7 @@ import urllib
 from lxml import etree
 
 from twisted.web.client import getPage
+from twisted.web.error import Error
 from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
 
 class MultitranAPI(object):
@@ -51,11 +52,11 @@ class MultitranAPI(object):
         translation = ''
         # get page with translation
         wrd = word.encode('cp1251', 'xmlcharrefreplace')
-        params = urllib.urlencode({'s':wrd, 'CL':1, 'l1':lang})
-        page = 'http://www.multitran.ru/c/m.eaxe?%s'%params
+        params = urllib.urlencode({'s': wrd, 'CL': 1, 'l1': lang})
+        page = 'http://www.multitran.ru/c/m.exe?%s' % params
         try:
             page = yield getPage(page)
-        except:
+        except Error:
             returnValue('Service error. Please, try later.')
         html = etree.HTML(page)
         # find table with translation
@@ -63,16 +64,17 @@ class MultitranAPI(object):
         x = trs[0].xpath('td')[0].xpath('descendant::text()')
         # uknown word
         if len(x) == 1:
-            returnValue('Sorry, can not translate "%s"'%word)
+            returnValue('Sorry, can not translate "%s"' % word)
         translation += '%s' % x[0].rstrip('\r\n')
         translation += '%s' % x[1].rstrip('\r\n')
 
         try:
             transcription = yield cls._get_transcription(word)
+        except Error:
+            pass
+        else:
             if transcription:
                 translation += ' [%s] ' % transcription
-        except:
-            pass
 
         for elem in x[2:]:
             translation += '%s' % elem.rstrip('\r\n')
