@@ -94,6 +94,8 @@ class MultitranAPI(object):
                 for elem in td.xpath('descendant::text()'):
                     translation += '%s' % elem.rstrip('\r\n')
             translation += '\n'
+        translation += u'\nПо материалам сайтов http://www.multitran.ru\
+ и http://slovari.yandex.ru'
         returnValue(translation)
 
     @classmethod
