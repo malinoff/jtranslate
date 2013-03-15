@@ -54,7 +54,7 @@ class MultitranAPI(object):
         # get page with translation
         wrd = word.encode('cp1251', 'xmlcharrefreplace')
         params = urllib.urlencode({'s': wrd, 'CL': 1, 'l1': lang})
-        page = 'http://wwx.multitran.ru/c/m.exe?%s' % params
+        page = 'http://www.multitran.ru/c/m.exe?%s' % params
         try:
             page = yield getPage(page)
         except (Error, DNSLookupError, TimeoutError) as e:
