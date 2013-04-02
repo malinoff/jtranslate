@@ -32,13 +32,15 @@ class MultitranAPI(object):
              'xal': ('Kalmyk', 35)
              }
 
-    @classmethod
-    def get_languages(cls):
-        return dict(map(lambda x: (x[0], x[1][0]), cls.langs.items()))
+    def __init__(self, *args, **kwargs):
+        super(MultitranAPI, self).__init__(*args, **kwargs)
+        self.firstRequest = True
 
-    @classmethod
+    def get_languages(self):
+        return dict(map(lambda x: (x[0], x[1][0]), self.langs.items()))
+
     @inlineCallbacks
-    def _get_transcription(cls, word):
+    def _get_transcription(self, word):
         # get page with transcription
         word = word.encode('utf-8')
         transl = u'перевод'.encode('utf-8')
@@ -55,9 +57,8 @@ class MultitranAPI(object):
             if transcription:
                 returnValue(transcription[0].text)
 
-    @classmethod
     @inlineCallbacks
-    def _get_translation(cls, word, lang):
+    def _get_translation(self, word, lang):
         translation = ''
         # get page with translation
         wrd = word.encode('cp1251', 'xmlcharrefreplace')
@@ -78,7 +79,7 @@ class MultitranAPI(object):
         translation += '%s' % x[1].rstrip('\r\n')
 
         try:
-            transcription = yield cls._get_transcription(word)
+            transcription = yield self._get_transcription(word)
         except errors as e:
             pass
         else:
@@ -94,13 +95,14 @@ class MultitranAPI(object):
                 for elem in td.xpath('descendant::text()'):
                     translation += '%s' % elem.rstrip('\r\n')
             translation += '\n'
-        translation += u'\nПо материалам сайтов http://www.multitran.ru\
- и http://slovari.yandex.ru'
+        if self.firstRequest:
+            translation += u'\nПо материалам сайтов http://www.multitran.ru\
+ и http://slovari.yandex.ru (транскрипция)'
+            self.firstRequest = False
         returnValue(translation)
 
-    @classmethod
-    def translate(cls, word, lang):
+    def translate(self, word, lang):
         if isinstance(lang, basestring):
-            lang = cls.langs[str(lang)][1]
-        translation = cls._get_translation(word, lang)
+            lang = self.langs[str(lang)][1]
+        translation = self._get_translation(word, lang)
         return translation

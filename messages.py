@@ -10,13 +10,14 @@ class MessageHandler(Message):
     @inlineCallbacks
     def anyHandler(self):
         reply = self.get_reply()
-        reply.body = yield MultitranAPI.translate(self.body, self.to.user)
+        reply.body = yield self.host.api.translate(self.body, self.to.user)
         returnValue(reply)
 
 class MessageTranslation(object):
 
-    def __init__(self, dispatcher):
+    def __init__(self, dispatcher, api):
         self.dispatcher = dispatcher
+        self.api = api
 
     def init(self):
         self.dispatcher.registerHandler((MessageHandler, self))

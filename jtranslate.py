@@ -46,19 +46,21 @@ class jtranslateComponent(TwilixComponent):
 Jabber translate service')
         self.vcard = VCard(self.dispatcher, myvcard=self.myvcard)
         self.vcard.init(self.disco)
+
+        api = MultitranAPI()
         items = [DiscoItem(jid=u'%s@%s' % (code, self.myjid),
                            iname='Translate to %s'%lang)
-                    for code, lang in MultitranAPI.get_languages().items()]
+                    for code, lang in api.get_languages().items()]
         self.disco.root_items.addItems(items)
 
         def validate(code):
-            if code in MultitranAPI.get_languages():
+            if code in api.get_languages():
                 return True
             return False
 
         self.subscription = Subscription(self.dispatcher, validate)
         self.subscription.init()
-        self.mtrans = MessageTranslation(self.dispatcher)
+        self.mtrans = MessageTranslation(self.dispatcher, api)
         self.mtrans.init()
         self.disco.init()
         print 'Connected!'
